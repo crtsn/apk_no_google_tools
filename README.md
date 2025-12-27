@@ -20,13 +20,58 @@ If i will not succseed, at least I will understand low level android shit slight
     - something like [smallest possible apk](https://github.com/fractalwrench/ApkGolf) should be the first prototype
         - phew, they removed, AppCompatActivity, this is nice
         - based article, they stopped using gradle (oh wait, no they don't, but I could reproduce their build without gradle)
-2. find out what is stored in android.jar, how could i use it with java
+        - ok, let's build a simple example of simple jar using only bash and base it on [this](https://github.com/jbendtsen/tiny-android-template) modern example
+2. find out what is stored in android.jar, how could i use it with java and do i need resources.arsc from android sdk if i don't use xml files
 3. find out what the fuck is R.java? Do i need it as a separate thing, could i just generate ids myself, is this that hard?
     - ok, we probably don't need R.java at all, we could just access resources using [AssetManager](https://developer.android.com/reference/android/content/res/AssetManager#open\(java.lang.String,%20int\))
 4. read about dex file structure if there are docs (I hope)
     - there are [docs](https://source.android.com/docs/core/runtime/dex-format)!
 5. ???
 6. PROFIT
+
+## steps for vanila build for tiny-android-template and also local android tools setup for now
+
+```sh
+# choose variant
+ln -s src-vanilla src
+ln -s res-vanilla res
+# after fixing shebang
+./sdk-package-list.py
+# then parse and download needed android tools
+mkdir Sdk
+cd Sdk
+
+andr_sdk () {
+    local link=$(sed -n "s/.*\"\(.*${1}.*\.zip\)\".*/\1/p" <../sdk-package-list.html | head -1)
+    echo Downloading $link
+    wget $link
+}
+
+# downloading latest sdk
+andr_sdk build-tools_
+andr_sdk platform-
+andr_sdk platform-tools_
+# for jni
+andr_sdk android-ndk-
+unset -f andr_sdk
+
+ls -1 *.zip | xargs -I{} unzip {}
+rm *.zip
+
+cd ..
+
+# update includes.pl if needed
+
+# install JDK. for ubuntu I was using this:
+sudo apt install default-jdk
+
+./link.pl
+keytool -genkeypair -keystore keystore.jks -keyalg RSA -keysize 2048 -validity 10000
+./make.pl
+
+# connect with adb to your phone
+./run.pl
+```
 
 ---
 
