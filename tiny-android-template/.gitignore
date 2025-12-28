@@ -2,6 +2,8 @@ build/
 lib/
 app.apk
 app.apk.idsig
+app/
 keystore.jks
 ids.txt
 Sdk
+arm64-v8a/

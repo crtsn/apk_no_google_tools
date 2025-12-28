@@ -1,4 +1,4 @@
-#!/bin/python
+#!/bin/env python3
 # It is strongly encouraged that you modify this script to suit your needs
 
 import os
@@ -12,15 +12,14 @@ ARCHITECTURE_MAP = {
 
 TARGET_ARCHES = ["aarch64"]
 
-HOST_OS = "windows-x86_64" # use "windows-x86_64" for windows, and "linux-x86_64" for linux
+HOST_OS = "linux-x86_64"
 API_LEVEL = "33"
-NDK_VERSION = "23.0.7599858"
-SDK_DIR = "C:/Android/sdk"
+SDK_DIR = os.path.dirname(os.path.realpath(__file__)) + "/Sdk"
 
-NDK_DIR = f"{SDK_DIR}/ndk/$NDK_VERSION"
-NDK_BIN_DIR = f"{NDK_DIR}/toolchains/llvm/prebuilt/$HOST_OS/bin"
-NDK_INCLUDE_DIR = f"{NDK_DIR}/toolchains/llvm/prebuilt/$HOST_OS/usr/sysroot/include"
-NDK_LIB_DIR = f"{NDK_DIR}/toolchains/llvm/prebuilt/$HOST_OS/usr/sysroot/lib"
+NDK_DIR = f"{SDK_DIR}/android-ndk-r29"
+NDK_BIN_DIR = f"{NDK_DIR}/toolchains/llvm/prebuilt/{HOST_OS}/bin"
+NDK_INCLUDE_DIR = f"{NDK_DIR}/toolchains/llvm/prebuilt/{HOST_OS}/usr/sysroot/include"
+NDK_LIB_DIR = f"{NDK_DIR}/toolchains/llvm/prebuilt/{HOST_OS}/usr/sysroot/lib"
 
 OUTPUT = "libjni-example.so"
 LIBS = ""
@@ -47,7 +46,7 @@ for arch in TARGET_ARCHES:
                 sources.append(filepath)
 
     lib_dirs = f"-L{NDK_LIB_DIR}/{arch}-linux-android/{API_LEVEL}"
-    cmd = f"{NDK_BIN_DIR}/clang-12 --target={arch}-linux-android{API_LEVEL} -shared -fPIC {INCLUDE_DIRS} {lib_dirs} {LIBS} {" ".join(sources)} -o "
+    cmd = f"{NDK_BIN_DIR}/clang-21 --target={arch}-linux-android{API_LEVEL} -shared -fPIC {INCLUDE_DIRS} {lib_dirs} {LIBS} {" ".join(sources)} -o "
     cmd += ARCHITECTURE_MAP[arch] + "/" + OUTPUT
 
     os.mkdir(ARCHITECTURE_MAP[arch])

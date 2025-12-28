@@ -1,5 +1,8 @@
 #!/bin/perl
 
+use File::Basename;
+my $SCRIPT_DIR = dirname(__FILE__);
+
 my $SDK_DIR;
 my $CMD_ADB;
 
