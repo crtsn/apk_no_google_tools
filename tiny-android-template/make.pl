@@ -16,44 +16,32 @@ use File::Copy qw(copy);
 use File::Basename;
 my $SCRIPT_DIR = dirname(__FILE__);
 
-my $SDK_DIR;
-my $ANDROID_VERSION;
-my $MIN_SDK_VERSION;
-my $PLATFORM_DIR;
-my $TOOLS_DIR;
-my $JAR_TOOLS;
-my $CMD_JAVA;
-my $CMD_JAVAC;
-my $CMD_KOTLINC;
-my $CMD_D8;
-my $CMD_7Z;
-my $KEYSTORE;
-my $KS_PASS;
+my $ANDROID_VERSION = "16";
+my $SDK_DIR = "$SCRIPT_DIR/Sdk";
 
-# This seems to be the only way to include perl files without creating modules and messing with environment variables.
-# 'do' and 'require' silently and mysteriously don't work.
-# The problem seems to be ideological, which makes this workaround all the more ironic, but that's Perl for you.
-{
-	open(my $FILE, '<', "includes.pl");
+my $MIN_SDK_VERSION = 21;
 
-	foreach my $line (<$FILE>) {
-		if (length($line) < 2 or substr($line, 0, 1) eq '#') {
-			next;
-		}
-		my $decl = $line =~ s/\r//r;
-		$decl =~ s/\n//;
-		eval($decl . "\n");
-	}
+my $KEYSTORE = "keystore.jks";
+my $KS_PASS = "123456";
 
-	close($FILE);
-}
+my $TOOLS_DIR = "$SDK_DIR/android-$ANDROID_VERSION";
+my $PLATFORM_DIR = "$SDK_DIR/android-Baklava";
+
+# Things to replace
+my $CMD_7Z = "7z";
+my $CMD_JAR = "jar";
+my $CMD_JAVA = "java";
+my $CMD_JAVAC = "javac";
+my $CMD_D8 = "$CMD_JAVA -Xmx1024M -Xss1m -cp $TOOLS_DIR/lib/d8.jar com.android.tools.r8.D8";
+my $CMD_AAPT2 = "$TOOLS_DIR/aapt2";
+my $CMD_ZIPALIGN = "$TOOLS_DIR/zipalign";
+my $CMD_APKSIGNER = "$CMD_JAVA -Xmx1024M -Xss1m -jar $TOOLS_DIR/lib/apksigner.jar";
+
+my $CMD_ALTAAPT = "$CMD_JAVA -jar $SCRIPT_DIR/../altaapt/altaapt.jar";
 
 my $DEV_NULL = File::Spec->devnull;
 
 my $SEP = ":";
-if ($^O eq "MSWin32" or $^O eq "cygwin") {
-	$SEP = ";";
-}
 
 if (not -d "build") {
 	mkdir("build");
@@ -98,7 +86,6 @@ if (not $package) {
 print "Compiling project source...\n";
 
 my $java_list = "";
-my $kt_list = "";
 
 sub find_cb {
 	print $_ . "\n";
@@ -106,10 +93,6 @@ sub find_cb {
 		if (substr($_, length($_) - 5) eq ".java") {
 			$java_list .= " ";
 			$java_list .= $File::Find::name;
-		}
-		elsif (substr($_, length($_) - 3) eq ".kt") {
-			$kt_list .= " ";
-			$kt_list .= $File::Find::name;
 		}
 	}
 }
@@ -130,8 +113,6 @@ if ($java_list) {
 	}
 
 	system("$CMD_JAVAC --release 8 -classpath $jars -d build $java_list") and exit;
-} elsif ($kt_list) {
-	system("$CMD_KOTLINC -d build -cp \"$PLATFORM_DIR/android.jar${SEP}build/R.jar${SEP}build/libs.jar\" -jvm-target 1.8 $kt_list") and exit;
 } else {
 	print "No project sources were found in the 'src' folder.\n";
 	exit;
@@ -142,8 +123,6 @@ print "Compiling classes into DEX bytecode...\n";
 my $dex_list = "";
 $dex_list .= " build/libs.dex" if (-f "build/libs.dex");
 $dex_list .= " build/libs_r.dex" if (-f "build/libs_r.dex");
-$dex_list .= " build/kotlin-stdlib.dex" if (-f "build/kotlin-stdlib.dex");
-$dex_list .= " build/kotlinx-coroutines-core-jvm.dex" if (-f "build/kotlinx-coroutines-core-jvm.dex");
 
 my $class_list = "";
 if (-d "build/$package_path") {
@@ -157,7 +136,12 @@ print "Creating APK...\n";
 my $res = "";
 $res .= "build/res.zip" if (-f "build/res.zip");
 $res .= " build/res_libs.zip" if (-f "build/res_libs.zip");
-system("$TOOLS_DIR/aapt2 link -o build/unaligned.apk --manifest AndroidManifest.xml -I $PLATFORM_DIR/android.jar --emit-ids ids.txt $res") and exit;
+
+system("$CMD_ALTAAPT AndroidManifest.xml build/AndroidManifest.xml"); # TODO: Add path args
+system("$CMD_7Z a -tzip build/unaligned.apk ./build/AndroidManifest.xml > $DEV_NULL");
+# exit(1);
+# system("$CMD_AAPT2 link -o build/unaligned.apk --manifest AndroidManifest.xml -I $PLATFORM_DIR/android.jar $res") and exit;
+# exit(1);
 
 # Pack the DEX file into a new APK file
 chdir "build";
@@ -175,9 +159,9 @@ foreach my $arch (@native_folders) {
 
 # Align the APK
 # I've seen the next step and this one be in the other order, but the Android reference site says it should be this way...
-system("$TOOLS_DIR/zipalign -f 4 build/unaligned.apk build/aligned.apk") and exit;
+system("$CMD_ZIPALIGN -f 4 build/unaligned.apk build/aligned.apk") and exit;
 
 print "Signing APK...\n";
 
 # Sign the APK
-system("$JAR_TOOLS/apksigner.jar sign --ks $KEYSTORE --ks-pass \"pass:$KS_PASS\" --min-sdk-version $MIN_SDK_VERSION --out app.apk build/aligned.apk");
+system("$CMD_APKSIGNER sign --ks $KEYSTORE --ks-pass \"pass:$KS_PASS\" --min-sdk-version $MIN_SDK_VERSION --out app.apk build/aligned.apk");

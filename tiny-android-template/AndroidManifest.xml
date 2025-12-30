@@ -12,7 +12,7 @@
 		android:targetSdkVersion="28"
 	/>
 
-	<application android:label="@string/app_name">
+	<application android:label="NO R.java App"><!--android:label="@string/app_name"-->
 		<activity android:name=".MainActivity">
 			<intent-filter>
 				<category android:name="android.intent.category.LAUNCHER"/>

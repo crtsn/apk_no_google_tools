@@ -3,6 +3,7 @@ lib/
 app.apk
 app.apk.idsig
 app/
+unaligned/
 keystore.jks
 ids.txt
 Sdk

@@ -1,0 +1,6 @@
+ARSCLib-1.3.9.jar
+ARSCLib
+*.class
+altaapt.jar
+*.apk
+tags
