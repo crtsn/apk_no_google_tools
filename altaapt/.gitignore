@@ -4,3 +4,5 @@ ARSCLib
 altaapt.jar
 *.apk
 tags
+__pycache__
+

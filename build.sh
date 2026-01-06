@@ -12,8 +12,17 @@ cd ..
 make
 
 cd ..
-java -jar altaapt/altaapt.jar tiny-android-template/AndroidManifest.xml tiny-android-template/build/AndroidManifest.xml
+rm -f tiny-android-template/build/AndroidManifest.xml
+java -jar altaapt/altaapt.jar tiny-android-template/AndroidManifest.xml tiny-android-template/build/AndroidManifest.xml >generate.log 2>&1
 
-# check if it even works
+# SDK_DIR="tiny-android-template/Sdk"
+# ANDROID_VERSION="16"
+# TOOLS_DIR="$SDK_DIR/android-$ANDROID_VERSION"
+# PLATFORM_DIR="$SDK_DIR/android-Baklava"
+# $TOOLS_DIR/aapt2 link -o tiny-android-template/build/unaligned.apk --manifest tiny-android-template/AndroidManifest.xml -I $PLATFORM_DIR/android.jar -v
+# unzip -o tiny-android-template/build/unaligned.apk AndroidManifest.xml -d tiny-android-template/build
+
 # java -Xmx1024M -Xss1m -jar tiny-android-template/Sdk/android-16/lib/apksigner.jar sign --ks tiny-android-template/keystore.jks --ks-pass "pass:123456" --out arsc_example.apk test_out.apk
 # adb install -r -t arsc_example.apk
+
+altaapt/axml_parse.py >parse.log 2>&1
