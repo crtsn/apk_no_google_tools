@@ -5,7 +5,7 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
 3. Ideally would be to have bunch of stb-esque libraries for converting xml -> axml, generating dalvik bytecode, generating resource files, aligning, signing
 4. Don't need to implement everything, no signing or alignment if possible, just the prove of concept
 5. apk should just have NativeActivity and also be able to open files with Storage Access Framework(TM)
-6. **TASK FAILED** Also, would be could to not read any google code, just documentation and some blogs
+6. **TASK FAILED** Also, would be cool to not read any google code, just documentation and some blogs
 7. If i will not succseed, at least I will understand low level android shit slightly better
 8. Using LLMs is forbidden
 
@@ -26,6 +26,7 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
         - there is [single header xml parser](https://github.com/mrvladus/xml.h), neat
         - ok, we have [python axml parser](https://github.com/androguard/androguard/blob/f96221f81287d0a7a6b8ed9bf67eacd2b272c93e/androguard/core/axml/__init__.py#L424), we could try to rewrite encoder based on this and not on deep tree of java classes like in ARSCLib
         - ok, reading code of aapt. seems to be easier then decypher how ARSCLib works with this all deep inheritance, downloading it and trying to build. [doing it here](#aapt-build)
+        - to build aapt I would try to use [android-sdk-tools](https://github.com/lzhiyong/android-sdk-tools) or [android-build-tools](https://github.com/termux/android-build-tools/) or [android-tools](https://github.com/nmeum/android-tools)
 2. **NO.** find out what is stored in android.jar, how could i use it with java and do i need resources.arsc from android sdk if i don't use xml files
 3. **NO.** find out what the fuck is R.java? Do i need it as a separate thing, could i just generate ids myself, is this that hard?
     - ok, we probably don't need R.java at all, we could just access resources using [AssetManager](https://developer.android.com/reference/android/content/res/AssetManager#open\(java.lang.String,%20int\))
@@ -103,7 +104,10 @@ ctags --languages=java -R ./src
 ## aapt build
 ```
 cd ./altaapt/
+git clone https://github.com/termux/android-build-tools
 ./build_aapt.sh
+# GOD THIS PROJECT IS AWESOME
+# I had some problems while building aapt2, but I don't need it so this is ok
 ```
 
 ---
