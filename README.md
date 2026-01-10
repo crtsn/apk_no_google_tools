@@ -1,16 +1,13 @@
 I am annoyed with complexity of google code and them deprecating aapt in favour of aapt2, so...
 
-**Goal is simple**: create simple apk using only java for compilation and no d8, appt and other google tools
-
-Then I could try to even get rid of java and generate needed bytecode by something like java
-
-Don't need to implement everything, no signing or alignment if possible, just the prove of concept
-
-apk should just have NativeActivity and also be able to open files with Storage Access Framework(TM)
-
-Also, would be could to not read any google code, just documentation and some blogs
-
-If i will not succseed, at least I will understand low level android shit slightly better
+1. **Goal is simple**: create simple apk using only java for compilation and no d8, appt and other google tools
+2. Then I could try to even get rid of java and generate needed bytecode by something like C, Python or even write a backend for tsoding's b-lang implementation
+3. Ideally would be to have bunch of stb-esque libraries for converting xml -> axml, generating dalvik bytecode, generating resource files, aligning, signing
+4. Don't need to implement everything, no signing or alignment if possible, just the prove of concept
+5. apk should just have NativeActivity and also be able to open files with Storage Access Framework(TM)
+6. **TASK FAILED** Also, would be could to not read any google code, just documentation and some blogs
+7. If i will not succseed, at least I will understand low level android shit slightly better
+8. Using LLMs is forbidden
 
 ## Plan (not real plan, I still don't know what am i doing)
 
@@ -28,6 +25,7 @@ If i will not succseed, at least I will understand low level android shit slight
         - rewrite with freepascal not c, hehe
         - there is [single header xml parser](https://github.com/mrvladus/xml.h), neat
         - ok, we have [python axml parser](https://github.com/androguard/androguard/blob/f96221f81287d0a7a6b8ed9bf67eacd2b272c93e/androguard/core/axml/__init__.py#L424), we could try to rewrite encoder based on this and not on deep tree of java classes like in ARSCLib
+        - ok, reading code of aapt. seems to be easier then decypher how ARSCLib works with this all deep inheritance, downloading it and trying to build. [doing it here](#aapt-build)
 2. **NO.** find out what is stored in android.jar, how could i use it with java and do i need resources.arsc from android sdk if i don't use xml files
 3. **NO.** find out what the fuck is R.java? Do i need it as a separate thing, could i just generate ids myself, is this that hard?
     - ok, we probably don't need R.java at all, we could just access resources using [AssetManager](https://developer.android.com/reference/android/content/res/AssetManager#open\(java.lang.String,%20int\))
@@ -100,6 +98,12 @@ NO DOCS for library :Sadge:, reading code to figure out how to convert AndroidMa
 ok, ctags are awesome
 ```
 ctags --languages=java -R ./src
+```
+
+## aapt build
+```
+cd ./altaapt/
+./build_aapt.sh
 ```
 
 ---

@@ -25,4 +25,7 @@ java -jar altaapt/altaapt.jar tiny-android-template/AndroidManifest.xml tiny-and
 # java -Xmx1024M -Xss1m -jar tiny-android-template/Sdk/android-16/lib/apksigner.jar sign --ks tiny-android-template/keystore.jks --ks-pass "pass:123456" --out arsc_example.apk test_out.apk
 # adb install -r -t arsc_example.apk
 
+# replace with something like local venv
+source ~/python3-venv/bin/activate
 altaapt/axml_parse.py >parse.log 2>&1
+# deactivate

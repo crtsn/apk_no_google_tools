@@ -5,4 +5,5 @@ altaapt.jar
 *.apk
 tags
 __pycache__
+aapt
 
