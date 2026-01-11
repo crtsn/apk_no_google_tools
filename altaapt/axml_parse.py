@@ -4,6 +4,7 @@
 
 import re
 import io
+import sys
 from typing import BinaryIO, Union
 from struct import pack, unpack
 
@@ -12,6 +13,11 @@ from lxml import etree
 
 import public
 from internal_types import *
+
+logger.remove()  # All configured handlers are removed
+fmt = "{message}"
+fmt = "{line: >4}:{level}:\t{message}"
+logger.add(sys.stderr, format=fmt)
 
 # Constants for ARSC Files
 # see http://aospxref.com/android-13.0.0_r3/xref/frameworks/base/libs/androidfw/include/androidfw/ResourceTypes.h#233
@@ -1792,10 +1798,22 @@ class AXMLEncoder:
 with open("tiny-android-template/build/AndroidManifest.xml", "rb") as fp:
     a = AXMLPrinter(fp.read())
 
-print(a.get_xml().decode("utf-8"))
+print("\n\n\n", flush=True)
+print("=======================================================", flush=True)
+print("DECODED", flush=True)
+print("=======================================================", flush=True)
+print(a.get_xml().decode("utf-8"), flush=True)
 
+print("\n\n\n", flush=True)
+print("=======================================================", flush=True)
+print("ENCODING", flush=True)
+print("=======================================================", flush=True)
 encoded = AXMLEncoder(a.get_xml().decode("utf-8")).get_bytes()
-print(encoded)
-print(AXMLPrinter(encoded).get_xml().decode("utf-8"))
+
+print("\n\n\n", flush=True)
+print("=======================================================", flush=True)
+print("DECODING ENCODED", flush=True)
+print("=======================================================", flush=True)
+print(AXMLPrinter(encoded).get_xml().decode("utf-8"), flush=True)
 
 # try also to read xml from file after that
