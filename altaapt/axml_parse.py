@@ -1635,20 +1635,45 @@ class AXMLPrinter:
         return uri
 
 class AXMLEncoder:
+    STRING_POOL_HEADER_SIZE = 0x1C
+
     def __init__(self, xml: str):
         self.tree = etree.fromstring(xml)
 
-        self.attrnames = []
+        # in aapt first we add attributes with resid assigned.
+        # for manifest these are all atributes with public namespace.
+        # so basically all attributes that start with 'android:'
+        self.namespaces = self.tree.nsmap
+        self.attrs_with_nsp = []
         self.strings = []
         for element in self.tree.iter():
-            print(f"{element.sourceline}: {element.tag} - {element.attrib}; {element.nsmap}")
-            self.attrnames += [x.split('}')[-1] for x in element.keys()]
+            print(f"{element.sourceline}: {element.tag} - {element.attrib}")
+            RESOURCES_ROOT_NAMESPACE = "http://schemas.android.com/apk/res/";
+            for attr in element.keys():
+                parts = attr.split('}')
+                namespace = None
+                if len(parts) == 2:
+                    namespace = parts[0][1:]
+                name = parts[-1]
+                if (namespace and 
+                    namespace.startswith(RESOURCES_ROOT_NAMESPACE) and 
+                    name not in self.attrs_with_nsp):
+                    self.attrs_with_nsp += [name]
+                elif (name not in self.strings and
+                      name not in self.attrs_with_nsp):
+                    self.strings += [name]
             self.strings += [element.tag]
-        print(self.attrnames)
+
+            for val in element.values():
+                if (val not in self.strings and
+                    val not in self.attrs_with_nsp):
+                    self.strings += [val]
+        print(self.attrs_with_nsp)
         print(self.strings)
+        print(self.namespaces)
         self.buffer = io.BytesIO()
+        sys.exit(1)
         self.axml_size = ARSCHeader.SIZE
-        STRING_POOL_HEADER_SIZE = 0x1C
 
         self.string_pool_size = ARSCHeader.SIZE
         self.string_count = 0
@@ -1657,7 +1682,7 @@ class AXMLEncoder:
         self.string_pool_size += 4
         self.flags = 0
         self.string_pool_size += 4
-        self.strings_offset = STRING_POOL_HEADER_SIZE
+        self.strings_offset = self.STRING_POOL_HEADER_SIZE
         self.string_pool_size += 4
         self.styles_offset = 0
         self.string_pool_size += 4
@@ -1729,42 +1754,23 @@ class AXMLEncoder:
         self.axml_size += self.xml_end_namespace_size
 
         # writing first ARSCHeader
-        self.buffer.write(pack("<H", RES_XML_TYPE))
-        self.buffer.write(pack("<H", ARSCHeader.SIZE))
-        self.buffer.write(pack("<L", self.axml_size))
+        self.write_ResChunk_header(RES_XML_TYPE, ARSCHeader.SIZE, self.axml_size)
 
         # writing STRING POOL
-        self.buffer.write(pack("<H", RES_STRING_POOL_TYPE))
-        self.buffer.write(pack("<H", STRING_POOL_HEADER_SIZE))
-        self.buffer.write(pack("<L", self.string_pool_size))
-        self.buffer.write(pack("<I", self.string_count))
-        self.buffer.write(pack("<I", self.style_count))
-        self.buffer.write(pack("<I", self.flags))
-        self.buffer.write(pack("<I", self.strings_offset))
-        self.buffer.write(pack("<I", self.styles_offset))
-        for i in range(self.string_count):
-            self.buffer.write(pack("<I", self.string_offsets[i]))
-        for i in range(self.style_count):
-            self.buffer.write(pack("<I", self.style_offsets[i]))
+        self.write_ResStringPool_header(self.string_pool_size)
 
         # Writing Resource Map
-        self.buffer.write(pack("<H", RES_XML_RESOURCE_MAP_TYPE))
-        self.buffer.write(pack("<H", ARSCHeader.SIZE))
-        self.buffer.write(pack("<L", self.resource_map_size))
+        self.write_ResChunk_header(RES_XML_RESOURCE_MAP_TYPE, ARSCHeader.SIZE, self.resource_map_size)
 
         # Writing namespace mapping
-        self.buffer.write(pack("<H", RES_XML_START_NAMESPACE_TYPE))
-        self.buffer.write(pack("<H", 0x10))
-        self.buffer.write(pack("<L", self.xml_namespace_size))
+        self.write_ResChunk_header(RES_XML_START_NAMESPACE_TYPE, 0x10, self.xml_namespace_size)
         self.buffer.write(pack("<L", self.xml_namespace_line_number))
         self.buffer.write(pack("<L", self.xml_namespace_comment_index))
         self.buffer.write(pack("<L", self.xml_namespace_prefix))
         self.buffer.write(pack("<L", self.xml_namespace_uri))
 
         # Write XML root
-        self.buffer.write(pack("<H", RES_XML_START_ELEMENT_TYPE))
-        self.buffer.write(pack("<H", 0x10))
-        self.buffer.write(pack("<L", self.xml_root_size))
+        self.write_ResChunk_header(RES_XML_START_ELEMENT_TYPE, 0x10, self.xml_root_size)
         self.buffer.write(pack("<L", self.xml_root_line_number))
         self.buffer.write(pack("<L", self.xml_root_comment_index))
         self.buffer.write(pack("<L", self.xml_root_namespace_uri))
@@ -1775,18 +1781,14 @@ class AXMLEncoder:
         self.buffer.write(pack("<L", self.xml_root_class_attribute))
 
         # Write END XML root
-        self.buffer.write(pack("<H", RES_XML_END_ELEMENT_TYPE))
-        self.buffer.write(pack("<H", 0x10))
-        self.buffer.write(pack("<L", self.xml_end_root_size))
+        self.write_ResChunk_header(RES_XML_END_ELEMENT_TYPE, 0x10, self.xml_end_root_size)
         self.buffer.write(pack("<L", self.xml_end_root_line_number))
         self.buffer.write(pack("<L", self.xml_end_root_comment_index))
         self.buffer.write(pack("<L", self.xml_end_root_namespace_uri))
         self.buffer.write(pack("<L", self.xml_end_root_name))
 
         # Writing END namespace mapping
-        self.buffer.write(pack("<H", RES_XML_END_NAMESPACE_TYPE))
-        self.buffer.write(pack("<H", 0x10))
-        self.buffer.write(pack("<L", self.xml_end_namespace_size))
+        self.write_ResChunk_header(RES_XML_END_NAMESPACE_TYPE, 0x10, self.xml_end_namespace_size)
         self.buffer.write(pack("<L", self.xml_end_namespace_line_number))
         self.buffer.write(pack("<L", self.xml_end_namespace_comment_index))
         self.buffer.write(pack("<L", self.xml_end_namespace_prefix))
@@ -1794,6 +1796,23 @@ class AXMLEncoder:
 
     def get_bytes(self):
         return self.buffer.getbuffer().tobytes()
+
+    def write_ResChunk_header(self, type_id, headerSize, size):
+        self.buffer.write(pack("<H", type_id))
+        self.buffer.write(pack("<H", headerSize))
+        self.buffer.write(pack("<L", size))
+
+    def write_ResStringPool_header(self, size):
+        self.write_ResChunk_header(RES_STRING_POOL_TYPE, self.STRING_POOL_HEADER_SIZE, size)
+        self.buffer.write(pack("<I", self.string_count))
+        self.buffer.write(pack("<I", self.style_count))
+        self.buffer.write(pack("<I", self.flags))
+        self.buffer.write(pack("<I", self.strings_offset))
+        self.buffer.write(pack("<I", self.styles_offset))
+        for i in range(self.string_count):
+            self.buffer.write(pack("<I", self.string_offsets[i]))
+        for i in range(self.style_count):
+            self.buffer.write(pack("<I", self.style_offsets[i]))
 
 with open("tiny-android-template/build/AndroidManifest.xml", "rb") as fp:
     a = AXMLPrinter(fp.read())

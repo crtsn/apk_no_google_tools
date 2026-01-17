@@ -3,11 +3,12 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
 1. **Goal is simple**: create simple apk using only java for compilation and no d8, appt and other google tools
 2. Then I could try to even get rid of java and generate needed bytecode by something like C, Python or even write a backend for tsoding's b-lang implementation
 3. Ideally would be to have bunch of stb-esque libraries for converting xml -> axml, generating dalvik bytecode, generating resource files, aligning, signing
-4. Don't need to implement everything, no signing or alignment if possible, just the prove of concept
-5. apk should just have NativeActivity and also be able to open files with Storage Access Framework(TM)
-6. **TASK FAILED** Also, would be cool to not read any google code, just documentation and some blogs
-7. If i will not succseed, at least I will understand low level android shit slightly better
-8. Using LLMs is forbidden
+4. Creating decoder/encoder for [kaitai](https://formats.kaitai.io/) or [ImHex](https://github.com/WerWolv/ImHex-Patterns) would be usefull, i think
+5. Don't need to implement everything, no signing or alignment if possible, just the prove of concept
+6. apk should just have NativeActivity and also be able to open files with Storage Access Framework(TM)
+7. **TASK FAILED** Also, would be cool to not read any google code, just documentation and some blogs
+8. If i will not succseed, at least I will understand low level android shit slightly better
+9. Using LLMs is forbidden
 
 ## Plan (not real plan, I still don't know what am i doing)
 
@@ -17,16 +18,23 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
     - something like [smallest possible apk](https://github.com/fractalwrench/ApkGolf) should be the first prototype
         - phew, they removed, AppCompatActivity, this is nice
         - based article, they stopped using gradle (oh wait, no they don't, but I could reproduce their build without gradle)
-        - ok, let's build a simple example of simple jar using only bash and base it on [this](https://github.com/jbendtsen/tiny-android-template) modern example; [instructions](#tat-instructions)
-        - ok, let's replace title for now to constant to figure out how to replace aapt2
-        - ok, it will not be that easy, let's [install and use ARSCLib](#arsclib-usage)
-        - ok, replaced aapt2 to convert AndroidManifest.xml to binary version wiht ARSCLib based tool (code is too complex, still need to figure out how to do it myself)
-        - there some other projects that encode AndroidManifest.xml: [this one is good and small](https://github.com/apk-editor/aXML) - ok, this is not simple at all, using bunch of android stuff, keep using ARSCLib
-        - rewrite with freepascal not c, hehe
-        - there is [single header xml parser](https://github.com/mrvladus/xml.h), neat
-        - ok, we have [python axml parser](https://github.com/androguard/androguard/blob/f96221f81287d0a7a6b8ed9bf67eacd2b272c93e/androguard/core/axml/__init__.py#L424), we could try to rewrite encoder based on this and not on deep tree of java classes like in ARSCLib
-        - ok, reading code of aapt. seems to be easier then decypher how ARSCLib works with this all deep inheritance, downloading it and trying to build. [doing it here](#aapt-build)
-        - to build aapt I would try to use [android-sdk-tools](https://github.com/lzhiyong/android-sdk-tools) or [android-build-tools](https://github.com/termux/android-build-tools/) or [android-tools](https://github.com/nmeum/android-tools)
+    - ok, let's build a simple example of simple jar using only bash and base it on [this](https://github.com/jbendtsen/tiny-android-template) modern example; [instructions](#tat-instructions)
+    - ok, let's replace title for now to constant to figure out how to replace aapt2
+    - ok, it will not be that easy, let's [install and use ARSCLib](#arsclib-usage)
+    - ok, replaced aapt2 to convert AndroidManifest.xml to binary version wiht ARSCLib based tool (code is too complex, still need to figure out how to do it myself)
+    - there some other projects that encode AndroidManifest.xml: [this one is good and small](https://github.com/apk-editor/aXML) - ok, this is not simple at all, using bunch of android stuff, keep using ARSCLib
+    - rewrite with freepascal not c, hehe
+    - there is [single header xml parser](https://github.com/mrvladus/xml.h), neat
+    - ok, we have [python axml parser](https://github.com/androguard/androguard/blob/f96221f81287d0a7a6b8ed9bf67eacd2b272c93e/androguard/core/axml/__init__.py#L424), we could try to rewrite encoder based on this and not on deep tree of java classes like in ARSCLib
+    - ok, reading code of aapt. seems to be easier then decypher how ARSCLib works with this all deep inheritance, downloading it and trying to build. [doing it here](#aapt-build)
+    - to build aapt I would try to use [android-sdk-tools](https://github.com/lzhiyong/android-sdk-tools) or [android-build-tools](https://github.com/termux/android-build-tools/) or [android-tools](https://github.com/nmeum/android-tools)
+    - fuck, aapt have so many comments about what its doing, this is so cool and easy to read compared to ARSCLib or aapt2
+    - oh fuck, here comes ResXMLTree as in in ASRCLib, fuuuuu, no code is not simple then, it is just split between aapt and androidfw
+    - ok, at leasr I can now set kIsDebug inside code to figure out what's happening
+    - finally! how is it turned out that reading google's code is easier than ARSCLib ones? Probably comments and not that abstract names. Ok I probably got how StringPool organized. First we add all strings for attribute names that have resource ID assigned from all tree, then go other strings. `collect_resid_strings` then the rest, for anyone else researching aapt code in the future if this "project" dies
+    - hm, it seems that apt generates resources.arsc first, adds res ids to manfest attribute names, and then it collects fields based on that, but result looks like it just collects attributes that have namespaces, so I could probably do that for now; will look at buildResources function more closely after
+    - ah, ok, i was looking at the wrong place, it does this at the XMLNode::assignResourceIds
+    - ok, it is working this way because we only have public namespace "android" in manifest, so getNamespaceResourcePackage alvays returns true if there is namespace
 2. **NO.** find out what is stored in android.jar, how could i use it with java and do i need resources.arsc from android sdk if i don't use xml files
 3. **NO.** find out what the fuck is R.java? Do i need it as a separate thing, could i just generate ids myself, is this that hard?
     - ok, we probably don't need R.java at all, we could just access resources using [AssetManager](https://developer.android.com/reference/android/content/res/AssetManager#open\(java.lang.String,%20int\))
@@ -108,8 +116,15 @@ git clone https://github.com/termux/android-build-tools
 ./build_aapt.sh
 # GOD THIS PROJECT IS AWESOME
 # I had some problems while building aapt2, but I don't need it so this is ok
+cd ./altaapt/android-build-tools
+ctags --languages=c++ -R ./vendor
 ```
 
 ---
 
 NO LLM/GPT USED, JUST PURE AUTISM
+
+Well, this is now not true
+LLM was used slightly:
+- during researching why cmake rebuilds everything after changing single file, but it was helpless, but probably helped as a rubber duck(.ai, badum-tsss)
+    - it was calling `git submodules update` from CMakeLists and also my build_aapt.sh script, so it was thinking that code was changed

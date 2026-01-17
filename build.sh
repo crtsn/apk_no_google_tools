@@ -18,8 +18,12 @@ PLATFORM_DIR="$SDK_DIR/android-Baklava"
 
 # $TOOLS_DIR/aapt2 link -o tiny-android-template/build/unaligned.apk --manifest tiny-android-template/AndroidManifest.xml -I $PLATFORM_DIR/android.jar -v
 
+altaapt/build_aapt.sh
 altaapt/android-build-tools/build/vendor/aapt package -M tiny-android-template/AndroidManifest.xml -F tiny-android-template/build/unaligned.apk -I $PLATFORM_DIR/android.jar -v -f >generate.log 2>&1
 unzip -o tiny-android-template/build/unaligned.apk AndroidManifest.xml -d tiny-android-template/build
+
+# hehe badger badger badger badger
+# altaapt/android-build-tools/build/vendor/aapt dump badger tiny-android-template/build/unaligned.apk
 
 # java -Xmx1024M -Xss1m -jar tiny-android-template/Sdk/android-16/lib/apksigner.jar sign --ks tiny-android-template/keystore.jks --ks-pass "pass:123456" --out arsc_example.apk test_out.apk
 # adb install -r -t arsc_example.apk

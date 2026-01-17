@@ -10,7 +10,7 @@ if [ -d build ]; then
 else
 	git submodule update --init --depth 1
 	sudo apt install libfmt-dev libgtest-dev protobuf-compiler
-	cmake -B build
-	cmake -B build -DANDROID_BUILD_TOOLS_PATCH_VENDOR=OFF
+	cmake -B build -D CMAKE_BUILD_TYPE=Debug
+	cmake -B build -D ANDROID_BUILD_TOOLS_PATCH_VENDOR=OFF
 fi
-cmake --build build --target=aapt
+cmake --build build --target=aapt --verbose
