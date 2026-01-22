@@ -10,6 +10,7 @@ if [ -d build ]; then
 else
 	git submodule update --init --depth 1
 	sudo apt install libfmt-dev libgtest-dev protobuf-compiler
+	# termux: apt install fmt googletest protobuf bison flex
 	cmake -B build -D CMAKE_BUILD_TYPE=Debug
 	cmake -B build -D ANDROID_BUILD_TOOLS_PATCH_VENDOR=OFF
 fi

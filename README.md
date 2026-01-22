@@ -1,6 +1,6 @@
 I am annoyed with complexity of google code and them deprecating aapt in favour of aapt2, so...
 
-1. **Goal is simple**: create simple apk using only java for compilation and no d8, appt and other google tools
+1. **Goal is simple**: create simple apk using only java for compilation and no d8, appt and other google tools (no NDK also?)
 2. Then I could try to even get rid of java and generate needed bytecode by something like C, Python or even write a backend for tsoding's b-lang implementation
 3. Ideally would be to have bunch of stb-esque libraries for converting xml -> axml, generating dalvik bytecode, generating resource files, aligning, signing
 4. Creating decoder/encoder for [kaitai](https://formats.kaitai.io/) or [ImHex](https://github.com/WerWolv/ImHex-Patterns) would be usefull, i think
@@ -47,8 +47,10 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
 5. reimplement zipalign
 6. reimplement apksigner or jarsigner
     - you [couldn't](https://developer.android.com/studio/publish/app-signing#signapp) install non signed app on device :Sadge:
-7. ???
-8. PROFIT
+7. After struggling with building android-build-tools on termux realized, that we also might need to use just plain gcc cross compiler to build native code, but it might be a burden to figure out how they tweaked their clang
+    - [android docs](https://developer.android.com/ndk/guides/other_build_systems)
+8. ???
+9. PROFIT
 
 ## TAT instructions
 
