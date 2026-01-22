@@ -49,6 +49,10 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
     - you [couldn't](https://developer.android.com/studio/publish/app-signing#signapp) install non signed app on device :Sadge:
 7. After struggling with building android-build-tools on termux realized, that we also might need to use just plain gcc cross compiler to build native code, but it might be a burden to figure out how they tweaked their clang
     - [android docs](https://developer.android.com/ndk/guides/other_build_systems)
+    - ok, [more android docs](https://developer.android.com/ndk/guides/concepts#how_it_works) but about parts of ndk, so we need to figure out:
+      - how to use open source compiler to cross compile for android abi or how to create abi compatible code using asm
+      - how to link ndk's stdlib(bionic) during compilation and how to make lib compatible to multiple ndk versions
+    - [asm android native activity example](https://github.com/471D38UNNUX/Android-Assembly-Native-Activity/)
 8. ???
 9. PROFIT
 
