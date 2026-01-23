@@ -53,6 +53,7 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
       - how to use open source compiler to cross compile for android abi or how to create abi compatible code using asm
       - how to link ndk's stdlib(bionic) during compilation and how to make lib compatible to multiple ndk versions
     - [asm android native activity example](https://github.com/471D38UNNUX/Android-Assembly-Native-Activity/)
+    -hm, updated make.pl to build with generic aarch64 gcc and without using any android NDK includes and libraries it builds alright, but we will probably need some linking for opengl/EGL and we also need to provide our own stdlib or link with dynamic again by using stdlib from sysroot
 8. ???
 9. PROFIT
 
@@ -85,13 +86,9 @@ rm *.zip
 
 cd ..
 
-# update includes.pl if needed
-
 # install JDK. for ubuntu I was using this:
 sudo apt install default-jdk
 
-./link.pl
-./jni-compile.py # why do you use two scripting languages here?
 keytool -genkeypair -keystore keystore.jks -keyalg RSA -keysize 2048 -validity 10000
 ./make.pl
 

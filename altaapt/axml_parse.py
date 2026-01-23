@@ -1646,6 +1646,7 @@ class AXMLEncoder:
         self.namespaces = self.tree.nsmap
         self.attrs_with_nsp = []
         self.strings = []
+        self.strings += [''] # adding empty tag name as in aapt, but it still doesn't make sense to me
         for element in self.tree.iter():
             print(f"{element.sourceline}: {element.tag} - {element.attrib}")
             RESOURCES_ROOT_NAMESPACE = "http://schemas.android.com/apk/res/";
@@ -1668,9 +1669,13 @@ class AXMLEncoder:
                 if (val not in self.strings and
                     val not in self.attrs_with_nsp):
                     self.strings += [val]
-        print(self.attrs_with_nsp)
-        print(self.strings)
-        print(self.namespaces)
+        self.string_pool = []
+        self.string_pool += self.attrs_with_nsp
+        for (k, v) in self.namespaces.items():
+            self.string_pool += [k]
+            self.string_pool += [v]
+        self.string_pool += self.strings
+        print(self.string_pool)
         self.buffer = io.BytesIO()
         sys.exit(1)
         self.axml_size = ARSCHeader.SIZE

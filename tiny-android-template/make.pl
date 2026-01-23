@@ -27,6 +27,14 @@ my $KS_PASS = "123456";
 my $TOOLS_DIR = "$SDK_DIR/android-$ANDROID_VERSION";
 my $PLATFORM_DIR = "$SDK_DIR/android-Baklava";
 
+my $API_LEVEL = "33";
+my $NDK_DIR = "$SDK_DIR/android-ndk-r29";
+my $NDK_BIN_DIR = "$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/bin";
+my $NDK_INCLUDE_DIR = "$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include";
+my $NDK_LIB_DIR = "$NDK_DIR/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib";
+
+my $OPENJDK_PATH = "/usr/lib/jvm/java-21-openjdk-amd64";
+
 # Things to replace
 my $CMD_7Z = "7z";
 my $CMD_JAR = "jar";
@@ -82,6 +90,14 @@ if (not $package) {
 	print "Could not find a suitable package name inside AndroidManifest.xml\n";
 	exit;
 }
+
+my $dirname = "arm64-v8a";
+if (not -d $dirname) {
+	mkdir($dirname);
+}
+print "Compiling native code...\n";
+system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -o $dirname/libjni-example.so") and exit;
+# system("$NDK_BIN_DIR/clang-21 --target=aarch64-linux-android$API_LEVEL -shared -fPIC  -I$NDK_INCLUDE_DIR -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL src/JniExample.c -o $dirname/libjni-example.so") and exit;
 
 print "Compiling project source...\n";
 
@@ -148,14 +164,9 @@ chdir "build";
 system("$CMD_7Z a -tzip unaligned.apk classes.dex > $DEV_NULL");
 chdir "..";
 
-my @native_folders = ("arm64-v8a", "armeabi-v7a", "x86", "x86_64");
-
-foreach my $arch (@native_folders) {
-	if (-d $arch) {
-		system("$CMD_7Z a -tzip build/unaligned.apk $arch > $DEV_NULL");
-		system("$CMD_7Z rn -tzip build/unaligned.apk $arch lib/$arch > $DEV_NULL");
-	}
-}
+# Pack native code
+system("$CMD_7Z a -tzip build/unaligned.apk arm64-v8a > $DEV_NULL");
+system("$CMD_7Z rn -tzip build/unaligned.apk arm64-v8a lib/arm64-v8a > $DEV_NULL");
 
 # Align the APK
 # I've seen the next step and this one be in the other order, but the Android reference site says it should be this way...
