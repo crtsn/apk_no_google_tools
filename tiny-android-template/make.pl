@@ -96,7 +96,17 @@ if (not -d $dirname) {
 	mkdir($dirname);
 }
 print "Compiling native code...\n";
-system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -o $dirname/libjni-example.so") and exit;
+
+# build with generic toolchain with no libraries only jni
+system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL -ldl -o $dirname/libjni-example.so") and exit;
+
+# build with generic, link with ndk libdl
+# system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL -ldl -o $dirname/libjni-example.so") and exit;
+
+# build with generic toolchain with all headers and libraries
+# system("aarch64-linux-gnu-gcc -shared -fPIC -D'__attribute__(...)=' -D'_Nullable=' -D'_Nonnull=' -D'_Null_unspecified=' -I$NDK_INCLUDE_DIR src/JniExample.c -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL -ldl -o $dirname/libjni-example.so") and exit;
+
+# build with ndk toolchain
 # system("$NDK_BIN_DIR/clang-21 --target=aarch64-linux-android$API_LEVEL -shared -fPIC  -I$NDK_INCLUDE_DIR -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL src/JniExample.c -o $dirname/libjni-example.so") and exit;
 
 print "Compiling project source...\n";
@@ -165,8 +175,8 @@ system("$CMD_7Z a -tzip unaligned.apk classes.dex > $DEV_NULL");
 chdir "..";
 
 # Pack native code
-system("$CMD_7Z a -tzip build/unaligned.apk arm64-v8a > $DEV_NULL");
-system("$CMD_7Z rn -tzip build/unaligned.apk arm64-v8a lib/arm64-v8a > $DEV_NULL");
+system("$CMD_7Z a -tzip build/unaligned.apk arm64-v8a > $DEV_NULL") and exit;
+system("$CMD_7Z rn -tzip build/unaligned.apk arm64-v8a lib/arm64-v8a > $DEV_NULL") and exit;
 
 # Align the APK
 # I've seen the next step and this one be in the other order, but the Android reference site says it should be this way...

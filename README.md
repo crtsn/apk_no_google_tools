@@ -53,7 +53,8 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
       - how to use open source compiler to cross compile for android abi or how to create abi compatible code using asm
       - how to link ndk's stdlib(bionic) during compilation and how to make lib compatible to multiple ndk versions
     - [asm android native activity example](https://github.com/471D38UNNUX/Android-Assembly-Native-Activity/)
-    -hm, updated make.pl to build with generic aarch64 gcc and without using any android NDK includes and libraries it builds alright, but we will probably need some linking for opengl/EGL and we also need to provide our own stdlib or link with dynamic again by using stdlib from sysroot
+    - hm, updated make.pl to build with generic aarch64 gcc and without using any android NDK includes and libraries it builds alright, but we will probably need some linking for opengl/EGL and we also need to provide our own stdlib or link with dynamic again by using stdlib from sysroot
+    - ok, to use dlopen I always need to link with libdl.so, [because it's a stub](https://github.com/android/ndk/issues/472), so I need to use NDK one (and have a zoo of them for each NDK then? or its API is stable enough to have a single one?) or build it myself from [source](https://android.googlesource.com/platform/bionic/+/main/libdl)
 8. ???
 9. PROFIT
 
@@ -129,5 +130,5 @@ NO LLM/GPT USED, JUST PURE AUTISM
 
 Well, this is now not true
 LLM was used slightly:
-- during researching why cmake rebuilds everything after changing single file, but it was helpless, but probably helped as a rubber duck(.ai, badum-tsss)
+- during researching why cmake rebuilds everything after changing single file, but it was useless, but probably helped as a rubber duck(.ai, badum-tsss)
     - it was calling `git submodules update` from CMakeLists and also my build_aapt.sh script, so it was thinking that code was changed
