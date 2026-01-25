@@ -49,12 +49,18 @@ if (not $package or not $activity) {
 	exit;
 }
 
-# if (system("$CMD_ADB push arm64-v8a/libjni-example.so /storage/emulated/0/Download/") == 0) {
-# 	system("$CMD_ADB shell readelf -d /storage/emulated/0/Download/libjni-example.so | grep NEEDED");
-# 	system("$CMD_ADB shell strings /storage/emulated/0/Download/libjni-example.so | grep ^lib");
-# }
-# exit;
+my ($flag) = @ARGV;
 
-if (not system("$CMD_ADB install -r -t app.apk")) {
-	system("$CMD_ADB shell am start -n $package/$activity");
+if (defined $flag and $flag == '-l')
+{
+	if (system("$CMD_ADB push arm64-v8a/libjni-example.so /storage/emulated/0/Download/") == 0) {
+		system("$CMD_ADB shell readelf -d /storage/emulated/0/Download/libjni-example.so | grep NEEDED");
+		system("$CMD_ADB shell strings /storage/emulated/0/Download/libjni-example.so | grep ^lib");
+	}
+}
+else
+{
+	if (not system("$CMD_ADB install -r -t app.apk")) {
+		system("$CMD_ADB shell am start -n $package/$activity");
+	}
 }

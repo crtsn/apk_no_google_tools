@@ -55,6 +55,10 @@ I am annoyed with complexity of google code and them deprecating aapt in favour 
     - [asm android native activity example](https://github.com/471D38UNNUX/Android-Assembly-Native-Activity/)
     - hm, updated make.pl to build with generic aarch64 gcc and without using any android NDK includes and libraries it builds alright, but we will probably need some linking for opengl/EGL and we also need to provide our own stdlib or link with dynamic again by using stdlib from sysroot
     - ok, to use dlopen I always need to link with libdl.so, [because it's a stub](https://github.com/android/ndk/issues/472), so I need to use NDK one (and have a zoo of them for each NDK then? or its API is stable enough to have a single one?) or build it myself from [source](https://android.googlesource.com/platform/bionic/+/main/libdl)
+    - ok, reason why loading using System.loadLibrary doesn't work for dlopen, because inside libnativeloader it uses dlopen with RTLD_NOW flag not anything like RTLD_DEEPBIND, which makes sense, but still :Sadge:
+    - Also, [this](https://stackoverflow.com/a/62478452/4974580) SO comment is awesome at explaining how android loader (linker64) hijacks libdl.so at runtime at replaces stub with real one
+    - new task is to figure out is it possible to not have every version of libdl.so and just provide my own stub with certain set of functions and other should just be unavailible and not availible to binary but linking and loading should be successfull
+    - Fuck this is funny, my own stub library with dlopen worked
 8. ???
 9. PROFIT
 

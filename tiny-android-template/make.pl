@@ -98,7 +98,8 @@ if (not -d $dirname) {
 print "Compiling native code...\n";
 
 # build with generic toolchain with no libraries only jni
-system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL -ldl -o $dirname/libjni-example.so") and exit;
+system("aarch64-linux-gnu-gcc -shared -fPIC src/libdl_stub.c -nostdlib -o build/libdl.so") and exit;
+system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -nostdlib -Lbuild -ldl -o $dirname/libjni-example.so") and exit;
 
 # build with generic, link with ndk libdl
 # system("aarch64-linux-gnu-gcc -shared -fPIC -I$OPENJDK_PATH/include -I$OPENJDK_PATH/include/linux/ src/JniExample.c -L$NDK_LIB_DIR/aarch64-linux-android/$API_LEVEL -ldl -o $dirname/libjni-example.so") and exit;
